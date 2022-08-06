@@ -10,6 +10,8 @@ project ("PLCStarter")
 add_executable (PLCStarter "src/Starter.cpp")
 add_executable (TestApp "src/TestApp.cpp")
 
+# include boost library
+target_include_directories(PLCStarter PRIVATE "./boost_1_79_0")
 
 # change default out dir
 set_target_properties( PLCStarter TestApp
