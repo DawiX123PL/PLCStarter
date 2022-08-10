@@ -1,3 +1,20 @@
 .vs
+.vscode
+
+# build directories
 out
 build
+lib
+*.dir
+x64
+
+# visual studio files 
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln
+
+# cmake files
+CMakeCache.txt
+cmake_install.cmake
+CMakeFiles
