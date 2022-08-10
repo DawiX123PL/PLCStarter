@@ -3,6 +3,12 @@
 #include "thread.h"
 
 
+// NOTE:
+// - server and all connectionHandlers work in single thread, 
+//   probably it is safe to use shared varables without mutexes
+// 
+// 
+// 
 // almost all of this code is copy/paste from examples and tutorials
 // links:
 // boost.org:     https://www.boost.org/doc/libs/1_79_0/doc/html/boost_asio/tutorial/tutdaytime3.html
@@ -12,7 +18,8 @@
 
 
 
-class Server_connection : public std::enable_shared_from_this<Server_connection> {
+// this is is base to create custom client connection
+class Server_connection_handle : public std::enable_shared_from_this<Server_connection_handle> {
 	boost::asio::ip::tcp::socket _client;
 
 	// read buffer 
@@ -26,7 +33,7 @@ class Server_connection : public std::enable_shared_from_this<Server_connection>
 public:
 
 
-	Server_connection(boost::asio::ip::tcp::socket& client) :
+	Server_connection_handle(boost::asio::ip::tcp::socket& client) :
 		_client(std::move(client)), readBuf()
 	{
 
@@ -38,12 +45,15 @@ public:
 	}
 
 
-private:
+protected:
 
-	void onStart() {
-		std::cout << "Client connected succesfully\n";
-		write((const uint8_t* const)"Hello Client", 13);
-	}
+	virtual void onStart() = 0;
+
+	// this function is called when succesfully(or not) received some data
+	virtual void onRead(const boost::system::error_code& error, size_t bytes_received, uint8_t* data) = 0;
+
+	// this function is called when data is succesfuly(or not) sent to client
+	virtual void onWrite(const boost::system::error_code& error, std::size_t bytes_transferred) = 0;
 
 
 	void read() {
@@ -63,20 +73,7 @@ private:
 		);
 	}
 
-	// this function is called when succesfully(or not) received some data
-	void onRead(const boost::system::error_code& error, size_t bytes_received, uint8_t* data) {
-		if (error) {
-			std::cout << "ERROR: could not read message: \n\t"
-				<< error.value() << " -- "
-				<< error.message()
-				<< "\n";
-		}
-		std::cout << "Client message: \n\t";
-		for (int i = 0; i < bytes_received; i++)
-			std::cout << data[i];
-	}
-
-
+protected:
 	size_t write(const uint8_t* const data, size_t len) {
 
 		// copy data to memory used in class
@@ -96,6 +93,41 @@ private:
 		return cpyLen;
 	}
 
+};
+
+
+
+
+// this class is just to test if everything is working 
+class Server_connection_default : public std::enable_shared_from_this<Server_connection_default>, public Server_connection_handle {
+public :
+
+	// IMPORTANT - without this constructor code wont compile
+	// and compiler will show strange error 
+	Server_connection_default(boost::asio::ip::tcp::socket& client) : Server_connection_handle(client){}
+
+
+private:
+
+	void onStart() {
+		std::cout << "Client connected succesfully\n";
+		write((const uint8_t* const)"Hello Client", 13);
+	}
+
+
+	// this function is called when succesfully(or not) received some data
+	void onRead(const boost::system::error_code& error, size_t bytes_received, uint8_t* data) {
+		if (error) {
+			std::cout << "ERROR: could not read message: \n\t"
+				<< error.value() << " -- "
+				<< error.message()
+				<< "\n";
+		}
+		std::cout << "Client message: \n\t";
+		for (int i = 0; i < bytes_received; i++)
+			std::cout << data[i];
+	}
+
 	// this function is called when data is succesfuly(or not) sent to client
 	void onWrite(const boost::system::error_code& error, std::size_t bytes_transferred) {
 		if (error) {
@@ -110,6 +142,8 @@ private:
 
 
 
+// this class handles all connections in separate thread
+template <class Client_connection_class>
 class TCP_server : public Thread {
 
 	boost::asio::io_context context;
@@ -154,8 +188,12 @@ private:
 	// this is called when connection is succesfully created
 	void onAccept(const boost::system::error_code& error, boost::asio::ip::tcp::socket& client) {
 		// start connection
-		auto connection = std::make_shared<Server_connection>(client);
+		auto connection = std::make_shared<Client_connection_class>(client);
 		connection->start();
 	}
 
 };
+
+
+
+typedef TCP_server<Server_connection_default> TCP_server_default;
