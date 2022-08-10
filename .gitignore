@@ -1,20 +1,26 @@
-.vs
-.vscode
+/.vs
+/.vscode
+
+# this files can be build by running bootstrap.bat and b2.exe
+/boost_1_79_0/b2.exe
+/boost_1_79_0/project-config.jam
+/boost_1_79_0/stage
+/boost_1_79_0/bin.v2
 
 # build directories
-out
-build
-lib
-*.dir
-x64
+/out
+/build
+/lib
+/*.dir
+/x64
 
 # visual studio files 
-*.vcxproj
-*.vcxproj.filters
-*.vcxproj.user
-*.sln
+/*.vcxproj
+/*.vcxproj.filters
+/*.vcxproj.user
+/*.sln
 
 # cmake files
-CMakeCache.txt
-cmake_install.cmake
-CMakeFiles
+/CMakeCache.txt
+/cmake_install.cmake
+/CMakeFiles
