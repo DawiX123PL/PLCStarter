@@ -1,14 +1,20 @@
 #include <iostream>
 #include "Server.h"
-
-
+#include "PLCServer.h"
+#include "boost/json/src.hpp"
+#include "StarterConfig.h"
 
 
 
 int main() {
-	int port = 8000;
 
-	TCP_server server(port);
+
+	Starter_config config = read_config("./starter.config");
+	
+
+	int port = config.server.port;
+
+	PLC_TCP_server server(port);
 	server.Start();
 
 	std::cout << "Starting server at port: " << port << "\n";
