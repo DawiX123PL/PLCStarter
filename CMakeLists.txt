@@ -22,12 +22,15 @@ add_executable (PLCStarter ${PLCStarter_files})
 add_executable (TestApp "src/TestApp.cpp")
 
 # include boost library
-target_include_directories(PLCStarter PRIVATE "./boost_1_79_0")
-
 set(boost_lib_dir "${CMAKE_SOURCE_DIR}/boost_1_79_0/stage/lib/")
-target_link_libraries(PLCStarter PRIVATE "${boost_lib_dir}/libboost_container-vc143-mt-gd-x64-1_79.lib")
-target_link_libraries(PLCStarter PRIVATE "${boost_lib_dir}/libboost_json-vc143-mt-gd-x64-1_79.lib")
 
+target_include_directories(PLCStarter PRIVATE "./boost_1_79_0")
+target_link_libraries(PLCStarter PRIVATE "${boost_lib_dir}/libboost_container-vc143-mt-gd-x64-1_79.lib"
+                                         "${boost_lib_dir}/libboost_filesystem-vc143-mt-gd-x64-1_79.lib"
+                                         "${boost_lib_dir}/libboost_json-vc143-mt-gd-x64-1_79.lib")
+
+
+target_include_directories(TestApp PRIVATE "./boost_1_79_0")
 
 
 # change default out dir

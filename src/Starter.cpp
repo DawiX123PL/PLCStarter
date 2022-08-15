@@ -1,28 +1,41 @@
 #include <iostream>
+#include <chrono>
+
 #include "Server.h"
 #include "PLCServer.h"
-#include "boost/json/src.hpp"
 #include "StarterConfig.h"
+#include "PLC_IO_bridge.hpp"
+#include "App_controler.hpp"
+
+
+
+App_controler* PLC_server_connection_handle::app_controler = nullptr;
 
 
 
 int main() {
 
-
 	Starter_config config = read_config("./starter.config");
 	
 
-	int port = config.server.port;
+	App_controler app;
+	app.setPath(config.app.savePath);
 
-	PLC_TCP_server server(port);
+	PLC_server_connection_handle::app_controler = &app;
+	PLC_TCP_server server(config.server.port);
+
+	app.Start();
 	server.Start();
 
-	std::cout << "Starting server at port: " << port << "\n";
+	std::cout << "Starting server at port: " << config.server.port << "\n";
 
 	getchar(); // this is just to stop program for debugging
 
-	std::cout << "Shutting down server \n";
+	app.Stop();
 	server.Stop();
+	
+	std::cout << "Shutting down server \n";
+	app.Join();
 	server.Join();
 	std::cout << "Server stopped workign\n";
 }

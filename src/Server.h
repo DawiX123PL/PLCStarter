@@ -1,6 +1,7 @@
 #pragma once
 #include <boost/asio.hpp>
 #include "thread.h"
+#include <memory>
 
 
 // NOTE:
@@ -25,10 +26,6 @@ class Server_connection_handle : public std::enable_shared_from_this<Server_conn
 	// read buffer 
 	static constexpr size_t readBufSize = 1024;
 	uint8_t readBuf[readBufSize];
-
-	// write buffer
-	static constexpr size_t writeBufSize = 1024;
-	uint8_t writeBuf[readBufSize];
 
 public:
 
@@ -72,25 +69,26 @@ protected:
 			}
 		);
 	}
+	uint8_t writeBuf[readBufSize];
 
 protected:
 	size_t write(const uint8_t* const data, size_t len) {
 
-		// copy data to memory used in class
-		// this might be useless
-		// TODO: try to optimize this
-		size_t cpyLen = std::min(len, writeBufSize);
-		memcpy(writeBuf, data, cpyLen);
+		// copy data to memory
+		// shared pointer is necessary because data must be valid until handler is called
+		std::shared_ptr<uint8_t[]> mem(new uint8_t[len]);
+		memcpy(mem.get(), data, len);
+
 
 		// (almost) same as read()
 		auto self = shared_from_this();
 		_client.async_write_some(
-			boost::asio::buffer(writeBuf, cpyLen),
-			[this, self](const boost::system::error_code& error, std::size_t bytes_transferred)
+			boost::asio::buffer(mem.get(), len),
+			[this, self, mem](const boost::system::error_code& error, std::size_t bytes_transferred)
 			{onWrite(error, bytes_transferred); }
 		);
 
-		return cpyLen;
+		return len;
 	}
 
 };
