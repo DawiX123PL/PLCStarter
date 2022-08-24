@@ -29,7 +29,9 @@ Starter_config tag_invoke(boost::json::value_to_tag< Starter_config >, boost::js
 
 	// copy parameters from json file
 	tryAssing(json, "/TCPServer/port", config.server.port);
-	tryAssing(json, "/App/savePath", config.app.savePath);
+	tryAssing(json, "/App/autoStart", config.app.autoStart);
+	tryAssing(json, "/App/projRoot", config.app.projRoot);
+	tryAssing(json, "/App/exec", config.app.executable);
 
 	return config;
 }
@@ -64,7 +66,7 @@ Starter_config read_config(std::string path) {
 		configFile.read(data, configFileLen);
 		configStr.assign(data, configFileLen);
 
-		delete data;
+		delete[] data;
 	}
 	// ******** end of someones code
 

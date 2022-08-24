@@ -23,7 +23,9 @@ struct Starter_config {
 	} server;
 
 	struct App {
-		std::string savePath = "."; // path to save and launch app
+		bool autoStart = false;
+		std::string projRoot = "./userApp"; // path to save all files
+		std::string executable = "app.exe"; // name of executable to executable
 	}app;
 
 };
