@@ -20,7 +20,8 @@ add_executable (PLCStarter
             "src/Server.h"
             "src/PLCServer.h"
             "src/StarterConfig.cpp"
-            "src/StarterConfig.h")
+            "src/StarterConfig.h"
+            "src/PLCServer.cpp")
 
 add_executable (TestApp 
             "src/TestApp.cpp"
