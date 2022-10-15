@@ -51,8 +51,8 @@ set_target_properties( PLCStarter TestApp
 
 # set language standard to c++11
 if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET PLCStarter PROPERTY CXX_STANDARD 17)
-  set_property(TARGET TestApp PROPERTY CXX_STANDARD 17)
+  set_property(TARGET PLCStarter PROPERTY CXX_STANDARD 20)
+  set_property(TARGET TestApp PROPERTY CXX_STANDARD 20)
 endif()
 
 # TODO: Add tests and install targets if needed.

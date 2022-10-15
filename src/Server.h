@@ -163,7 +163,8 @@ private:
 			while (IsRun()) context.run_for(std::chrono::milliseconds(100));
 		}
 		catch (std::exception& e) {
-			std::cout << "Caugth error in context.run(): \n\t" << e.what() << "\n";
+			std::cout << "Caught error in context.run(): \n\t" << e.what() << "\n\t"
+					  << "TCP Server stops working !!!\n\n";
 		}
 	}
 
