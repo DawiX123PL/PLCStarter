@@ -2,6 +2,7 @@
 #include <boost/asio.hpp>
 #include "thread.h"
 #include <memory>
+#include <iostream>
 
 
 // NOTE:
@@ -141,11 +142,31 @@ private:
 
 
 // this class handles all connections in separate thread
-template <class Client_connection_class>
+template <class Client_connection_class, class Server_config>
 class TCP_server : public Thread {
 
 	boost::asio::io_context context;
 	boost::asio::ip::tcp::acceptor acceptor;
+
+
+	std::mutex config_mutex;
+	Server_config config;
+
+public:
+	void set_config(Server_config c) {
+		config_mutex.lock();
+		config = c;
+		config_mutex.unlock();
+	}
+
+
+	Server_config get_config() {
+		config_mutex.lock();
+		Server_config c = config;
+		config_mutex.unlock();
+		return c;
+	}
+
 
 public:
 	TCP_server(int port) :
@@ -187,12 +208,13 @@ private:
 	// this is called when connection is succesfully created
 	void onAccept(const boost::system::error_code& error, boost::asio::ip::tcp::socket& client) {
 		// start connection
-		auto connection = std::make_shared<Client_connection_class>(client);
+		auto connection = std::make_shared<Client_connection_class>(client, get_config());
 		connection->start();
 	}
 
 };
 
 
+struct Server_Config_Default{};
 
-typedef TCP_server<Server_connection_default> TCP_server_default;
+typedef TCP_server<Server_connection_default, Server_Config_Default> TCP_server_default;

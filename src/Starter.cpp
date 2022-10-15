@@ -9,9 +9,6 @@
 
 
 
-App_controler* PLC_server_connection_handle::app_controler = nullptr;
-
-
 
 int main() {
 
@@ -19,11 +16,12 @@ int main() {
 	
 
 	App_controler app;
-	//app.setPath(config.app.projRoot);
-	//app.setExec(config.app.executable);
-
-	PLC_server_connection_handle::app_controler = &app;
+	
 	PLC_TCP_server server(config.server.port);
+	PLC_TCP_server_config server_config{};
+
+	server.set_config(server_config);
+
 
 	app.Start();
 	server.Start();

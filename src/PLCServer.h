@@ -14,14 +14,16 @@
 
 
 
+struct PLC_TCP_server_config{};
+
+
+
 class PLC_server_connection_handle : public Server_connection_handle {
 public:
 	// IMPORTANT - without this constructor code wont compile
 	// and compiler will show strange error 
 	// NOTE - constructor must be public
-	PLC_server_connection_handle(boost::asio::ip::tcp::socket& client) : Server_connection_handle(client) {}
-
-	static App_controler* app_controler;
+	PLC_server_connection_handle(boost::asio::ip::tcp::socket& client, PLC_TCP_server_config config) : Server_connection_handle(client) {}
 
 private:
 
@@ -160,6 +162,7 @@ private:
 };
 
 
+
 // "Attach" connection handle to server class
-typedef TCP_server<PLC_server_connection_handle> PLC_TCP_server;
+typedef TCP_server<PLC_server_connection_handle, PLC_TCP_server_config> PLC_TCP_server;
 
