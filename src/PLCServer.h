@@ -14,16 +14,26 @@
 
 
 
-struct PLC_TCP_server_config{};
+
+struct PLC_TCP_server_config{
+	std::filesystem::path user_app_root;
+};
 
 
 
 class PLC_server_connection_handle : public Server_connection_handle {
+
+	const PLC_TCP_server_config config;
+
 public:
 	// IMPORTANT - without this constructor code wont compile
 	// and compiler will show strange error 
 	// NOTE - constructor must be public
-	PLC_server_connection_handle(boost::asio::ip::tcp::socket& client, PLC_TCP_server_config config) : Server_connection_handle(client) {}
+	PLC_server_connection_handle(boost::asio::ip::tcp::socket& client, PLC_TCP_server_config _config) : 
+		Server_connection_handle(client),
+		config(_config) {}
+
+
 
 private:
 
@@ -120,28 +130,55 @@ private:
 		else if (cmd == "TAG_GET")      commandNotImplemented(data_frame_obj, cmd);
 		else if (cmd == "TAG_SET")      commandNotImplemented(data_frame_obj, cmd);
 		else {
-			boost::json::value response = {{"Cmd",cmd}, {"Result","ERROR"}, {"Msg", "Unnown Command"}};
-			sendJson(response);
+			sendJson(jsonResponseERR(cmd, "Unnown Command"));
 		}
 
 	}
 
 
+	boost::json::value jsonResponseOK(std::string cmd, std::string key, auto value){
+		boost::json::value response =
+			{	
+				{"Cmd",cmd}, 
+				{"Result","OK"}, 
+				{key, value}
+			};
+		return response;
+	}
+
+	boost::json::value jsonResponseOK(std::string cmd){
+		boost::json::value response =
+			{	
+				{"Cmd",cmd}, 
+				{"Result","OK"}
+			};
+		return response;
+	}
+
+	boost::json::value jsonResponseERR(std::string cmd, std::string msg){
+		boost::json::value response =
+			{	
+				{"Cmd",cmd}, 
+				{"Result","ERROR"}, 
+				{"Msg", msg}
+			};
+		return response;
+	}
+
+
+
 	void commandNotImplemented(const boost::json::object& data_frame, const std::string& cmd){
-		boost::json::value response = {{"Cmd",cmd}, {"Result","ERROR"}, {"Msg", "Command not yet implemented"}};
-		sendJson(response);
+		sendJson(jsonResponseERR(cmd, "Command not yet implemented"));
 	}
 
 
 	void commandUnnown(const std::string& cmd){
-		boost::json::value response = {{"Cmd",cmd}, {"Result","OK"}, {"Msg", "XD"}};
-		sendJson(response);
+		sendJson(jsonResponseOK(cmd, "Msg", "XD"));
 	}
 
 
 	void commandPing(const std::string& cmd){
-		boost::json::value response = {{"Cmd","cmd"}, {"Result","OK"}, {"Msg", "PONG"}};
-		sendJson(response);
+		sendJson(jsonResponseOK(cmd, "Msg", "Pong"));
 	}
 
 

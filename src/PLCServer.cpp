@@ -4,9 +4,8 @@
 
 
 void PLC_server_connection_handle::commandFileList(const std::string& cmd){
-    std::string path = "./userAppRoot/root";
 
-    std::filesystem::recursive_directory_iterator dir_iter(path);
+    std::filesystem::recursive_directory_iterator dir_iter(config.user_app_root);
 
     boost::json::array result_array;
 
@@ -34,7 +33,7 @@ void PLC_server_connection_handle::commandFileList(const std::string& cmd){
 
         std::wstring_convert<std::codecvt<char32_t,char,std::mbstate_t>,char32_t> convert32;
         
-        auto relative_path = std::filesystem::relative(dir_entry.path(), path);
+        auto relative_path = std::filesystem::relative(dir_entry.path(), config.user_app_root);
         auto path = convert32.to_bytes(relative_path.u32string());
 
         boost::json::object dir_entry_js = 
@@ -47,8 +46,7 @@ void PLC_server_connection_handle::commandFileList(const std::string& cmd){
         result_array.push_back(dir_entry_js);
     }
 
-    boost::json::value response = { {"Cmd",cmd}, {"Result","OK"}, {"DirEntry", result_array} };
-    sendJson(response);
+    sendJson(jsonResponseOK(cmd,"DirEntry", result_array));
 }
 
 
@@ -97,9 +95,7 @@ bool PLC_server_connection_handle::readFileHex(const std::string& path, std::str
 
 
 void PLC_server_connection_handle::commandFileRead(boost::json::object data_frame, const std::string& cmd) {
-
-    std::filesystem::path root = "./userAppRoot/root";
-    
+  
     std::string name;
 
     if (data_frame.contains("FileName"))
@@ -109,29 +105,24 @@ void PLC_server_connection_handle::commandFileRead(boost::json::object data_fram
 
 
     if (name == "") {
-        boost::json::value response = { {"Cmd",cmd}, {"Result","ERROR"}, {"Msg","FileName is not specified"} };
-        sendJson(response);
+        sendJson(jsonResponseERR(cmd, "FileName is not specified"));
         return;
     }
 
-    std::filesystem::path path = root.append(name);
+    std::filesystem::path path = config.user_app_root / name;
 
     if (!std::filesystem::exists(path)) {
-        boost::json::value response = { {"Cmd",cmd}, {"Result","ERROR"}, {"Msg","File \"" + name + "\" does not exists"} };
-        sendJson(response);
+        sendJson(jsonResponseERR(cmd, "File \"" + name + "\" does not exists"));
         return;
     }
 
     std::string file_content;
-    if (!readFileHex(path.string(), &file_content)) {
-        boost::json::value response = { {"Cmd",cmd}, {"Result","ERROR"}, {"Msg","Cannot read file"} };
-        sendJson(response);
+    if (!readFileHex(config.user_app_root.string(), &file_content)) {
+        sendJson(jsonResponseERR(cmd, "Cannot read file"));
         return;
     }
 
-    boost::json::value response = { {"Cmd",cmd}, {"Result","Ok"}, {"Data",file_content} };
-    sendJson(response);
-
+    sendJson(jsonResponseOK(cmd, "Data", file_content));
 
 }
 
@@ -191,7 +182,6 @@ bool PLC_server_connection_handle::writeFileHex(const std::string& path,const st
 
 
 void PLC_server_connection_handle::commandFileWrite(boost::json::object data_frame, const std::string& cmd){
-    std::filesystem::path root = "./userAppRoot/root";
     
     std::string name;
 
@@ -199,19 +189,16 @@ void PLC_server_connection_handle::commandFileWrite(boost::json::object data_fra
         if (auto file_name = data_frame.at("FileName").if_string()){
             name = *file_name;
         }else{
-            boost::json::value response = { {"Cmd",cmd}, {"Result","ERROR"}, {"Msg","Field \"FileName\" must be string"} };
-            sendJson(response);
+            sendJson(jsonResponseERR(cmd, "Field \"FileName\" must be string"));
             return;
         }
     }else{
-        boost::json::value response = { {"Cmd",cmd}, {"Result","ERROR"}, {"Msg","Missing field \"FileName\""} };
-        sendJson(response);
+        sendJson(jsonResponseERR(cmd, "Missing field \"FileName\""));
         return;
     }
 
     if(name == ""){
-        boost::json::value response = { {"Cmd",cmd}, {"Result","ERROR"}, {"Msg","\"FileName\" Cannot be empty string"} };
-        sendJson(response);
+        sendJson(jsonResponseERR(cmd, "\"FileName\" Cannot be empty string"));
         return;
     }
     
@@ -221,26 +208,24 @@ void PLC_server_connection_handle::commandFileWrite(boost::json::object data_fra
         if (auto data_hex_str = data_frame.at("Data").if_string()){
             data_hex = *data_hex_str;
         }else{
-            boost::json::value response = { {"Cmd",cmd}, {"Result","ERROR"}, {"Msg","Field \"Data\" must be string"} };
-            sendJson(response);
+            sendJson(jsonResponseERR(cmd, "Field \"Data\" must be string"));
             return;
         }
     }else{
-        boost::json::value response = { {"Cmd",cmd}, {"Result","ERROR"}, {"Msg","Missing field \"Data\""} };
-        sendJson(response);
+        sendJson(jsonResponseERR(cmd, "Missing field \"Data\""));
         return;
     }
 
-    std::filesystem::path path = root;
-    path.append(name);
+    std::filesystem::path path = config.user_app_root / name;
+
+
     if (!writeFileHex(path.string(), data_hex)) {
-        boost::json::value response = { {"Cmd",cmd}, {"Result","ERROR"}, {"Msg","Cound not write file"} };
-        sendJson(response);
+        sendJson(jsonResponseERR(cmd, "Cound not write file"));
         return;
     }
 
     boost::json::value response = { {"Cmd",cmd}, {"Result","OK"} };
-    sendJson(response);
+    sendJson(jsonResponseOK(cmd));
     return;
 
 }

@@ -19,6 +19,7 @@ int main() {
 	
 	PLC_TCP_server server(config.server.port);
 	PLC_TCP_server_config server_config{};
+	server_config.user_app_root = config.app.projRoot;
 
 	server.set_config(server_config);
 
