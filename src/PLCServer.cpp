@@ -61,7 +61,7 @@ bool PLC_server_connection_handle::readFileHex(const std::string& path, std::str
         }
 
         file.seekg(0,std::ios::end);
-        int count = file.tellg();
+        size_t count = file.tellg();
         file.seekg(0,std::ios::beg);
 
         std::unique_ptr buf_unique = std::make_unique<char[]>(count); // not using 'new' to prevent memory leaks
@@ -134,7 +134,7 @@ bool PLC_server_connection_handle::writeFileHex(const std::string& path,const st
     }
 
     const char* hex = hex_str.c_str();
-    int count = hex_str.size() / 2;
+    size_t count = hex_str.size() / 2;
 
 
     std::unique_ptr data_unique_ptr = std::make_unique<char[]>(count);

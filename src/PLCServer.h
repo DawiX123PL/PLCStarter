@@ -2,6 +2,7 @@
 
 #include "Server.h"
 #include "App_controler.hpp"
+#include "App_builder.hpp"
 
 #include <boost/json.hpp>
 
@@ -42,7 +43,7 @@ private:
 
 
 private:
-	void parseJsonStream(char* data, int len) {
+	void parseJsonStream(char* data, size_t len) {
 		boost::json::value json;
 
 		std::error_code err;
@@ -121,7 +122,7 @@ private:
 		else if (cmd == "APP_STOP")     commandNotImplemented(data_frame_obj, cmd);
 		else if (cmd == "APP_RESUME")   commandNotImplemented(data_frame_obj, cmd);
 		else if (cmd == "APP_PAUSE")    commandNotImplemented(data_frame_obj, cmd);
-		else if (cmd == "APP_BUILD")    commandNotImplemented(data_frame_obj, cmd);
+		else if (cmd == "APP_BUILD")    commandAppBuild(data_frame_obj, cmd);
 		else if (cmd == "FILE_LIST")    commandFileList(cmd);
 		else if (cmd == "FILE_WRITE")   commandFileWrite(data_frame_obj, cmd);
 		else if (cmd == "FILE_READ")    commandFileRead(data_frame_obj, cmd);
@@ -137,10 +138,10 @@ private:
 
 
 	boost::json::value jsonResponseOK(std::string cmd, std::string key, auto value){
-		boost::json::value response =
+		boost::json::object response =
 			{	
-				{"Cmd",cmd}, 
-				{"Result","OK"}, 
+				{"Cmd",cmd},
+				{"Result","OK"},
 				{key, value}
 			};
 		return response;
@@ -165,6 +166,25 @@ private:
 		return response;
 	}
 
+	// TODO:
+	// This function is synchronous GARBAGE.
+	// It can easily freeze whole server for significant time.
+	// 
+	//
+	// FIX builder.build(); function in future
+	// 
+
+	void commandAppBuild(const boost::json::object& data_frame, const std::string& cmd){
+		AppBuilder builder;
+		builder.loadBuildConf(config.user_app_root / "build.conf");
+		std::vector<AppBuilder::BuildResult> result = builder.build();
+
+		std::string s = boost::json::serialize( boost::json::value_from(result) );
+
+		std::vector<std::string> w { "A", "b", "XD" };
+		
+		sendJson(jsonResponseOK(cmd, "CompilationResult", result));
+	}
 
 
 	void commandNotImplemented(const boost::json::object& data_frame, const std::string& cmd){
