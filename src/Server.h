@@ -70,7 +70,6 @@ protected:
 			}
 		);
 	}
-	uint8_t writeBuf[readBufSize];
 
 protected:
 	size_t write(const uint8_t* const data, size_t len) {

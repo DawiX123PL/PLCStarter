@@ -18,6 +18,7 @@
 
 struct PLC_TCP_server_config{
 	std::filesystem::path user_app_root;
+	App_controler* app_controler;
 };
 
 
@@ -47,8 +48,8 @@ private:
 		boost::json::value json;
 
 		std::error_code err;
-		int start = 0;
-		for (int i = 0; i < len; i++) {
+		size_t start = 0;
+		for (size_t i = 0; i < len; i++) {
 			if (data[i] == '\n') {
 				jsonParser.write(&data[start], i - start, err);
 				jsonParser.finish(err);
@@ -118,10 +119,11 @@ private:
 
 		if      (cmd == "UNNOWN")       commandUnnown(cmd);
 		else if (cmd == "PING")         commandPing(cmd);
-		else if (cmd == "APP_START")    commandNotImplemented(data_frame_obj, cmd);
-		else if (cmd == "APP_STOP")     commandNotImplemented(data_frame_obj, cmd);
+		else if (cmd == "APP_START")    commandAppStart(data_frame_obj, cmd);
+		else if (cmd == "APP_STOP")     commandAppStop(data_frame_obj, cmd);
 		else if (cmd == "APP_RESUME")   commandNotImplemented(data_frame_obj, cmd);
 		else if (cmd == "APP_PAUSE")    commandNotImplemented(data_frame_obj, cmd);
+		else if (cmd == "APP_STATUS")   commandAppStatus(data_frame_obj, cmd);
 		else if (cmd == "APP_BUILD")    commandAppBuild(data_frame_obj, cmd);
 		else if (cmd == "FILE_LIST")    commandFileList(cmd);
 		else if (cmd == "FILE_WRITE")   commandFileWrite(data_frame_obj, cmd);
@@ -135,6 +137,8 @@ private:
 		}
 
 	}
+
+	
 
 
 	boost::json::value jsonResponseOK(std::string cmd, std::string key, auto value){
@@ -166,6 +170,36 @@ private:
 		return response;
 	}
 
+
+	void commandAppStart(const boost::json::object& data_frame, const std::string& cmd){
+		if(config.app_controler == nullptr){
+			sendJson(jsonResponseERR(cmd, "Cannot Start App"));
+			return;
+		}
+		config.app_controler->AppStart();
+		sendJson(jsonResponseOK(cmd));
+	}
+
+	void commandAppStop(const boost::json::object& data_frame, const std::string& cmd){
+		if(config.app_controler == nullptr){
+			sendJson(jsonResponseERR(cmd, "Cannot Start App"));
+			return;
+		}
+		config.app_controler->AppStop();
+		sendJson(jsonResponseOK(cmd));
+	}
+
+	void commandAppStatus(const boost::json::object& data_frame, const std::string& cmd){
+		if(config.app_controler == nullptr){
+			sendJson(jsonResponseERR(cmd, "Cannot Start App"));
+			return;
+		}
+		bool is_running = config.app_controler->AppIsRunning();
+		std::string status = is_running ? "RUNNING" : "STOPPED";
+		
+		sendJson(jsonResponseOK(cmd, "Status", status));
+	}
+
 	// TODO:
 	// This function is synchronous GARBAGE.
 	// It can easily freeze whole server for significant time.
@@ -178,10 +212,6 @@ private:
 		AppBuilder builder;
 		builder.loadBuildConf(config.user_app_root / "build.conf");
 		std::vector<AppBuilder::BuildResult> result = builder.build();
-
-		std::string s = boost::json::serialize( boost::json::value_from(result) );
-
-		std::vector<std::string> w { "A", "b", "XD" };
 		
 		sendJson(jsonResponseOK(cmd, "CompilationResult", result));
 	}
