@@ -41,8 +41,8 @@ private:
 
 public:
     enum class Dir{
-        IN,
-        OUT,
+        INPUT,
+        OUTPUT,
     };
 
     enum class Level{
@@ -56,10 +56,10 @@ public:
         value_file_path = "/sys/class/gpio/gpio" + std::to_string(pin_nr) + "/value";
 
 
-        if(dir == Dir::IN){
+        if(dir == Dir::INPUT){
             const char str[] = "in";
             write_to_file(dir_file_path.c_str(),str, sizeof(str)-1 );
-        }else if(dir == Dir::OUT){
+        }else if(dir == Dir::OUTPUT){
             const char str[] = "out";
             write_to_file(dir_file_path.c_str(),str, sizeof(str)-1 );
         }
@@ -100,7 +100,7 @@ class GpioIn{
     Gpio gpio;
 
 public:
-    GpioIn(size_t nr):gpio(Gpio::Dir::IN, nr){};
+    GpioIn(size_t nr):gpio(Gpio::Dir::INPUT, nr){};
 
     Gpio::Level read(){
         return gpio.read();
@@ -117,7 +117,7 @@ class GpioOut{
     Gpio gpio;
 
 public:
-    GpioOut(size_t nr):gpio(Gpio::Dir::OUT, nr){};
+    GpioOut(size_t nr):gpio(Gpio::Dir::OUTPUT, nr){};
 
     void write(Gpio::Level level){
         gpio.write(level);

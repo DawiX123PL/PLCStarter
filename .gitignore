@@ -23,6 +23,7 @@
 /*.vcxproj.filters
 /*.vcxproj.user
 /*.sln
+/enc_temp_folder
 
 # cmake files
 /CMakeCache.txt

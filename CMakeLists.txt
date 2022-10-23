@@ -44,7 +44,7 @@ target_compile_definitions(TestApp    PRIVATE PLC_IO_BRIDGE_CONNECT=1)
 
 if (UNIX)
 	target_compile_definitions(PLCStarter PRIVATE USE_PHYSICAL_GPIO=1)
-endif
+endif(UNIX)
 
 
 # change default out dir
