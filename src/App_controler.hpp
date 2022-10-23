@@ -8,10 +8,11 @@
 #include <fstream>
 #include <filesystem>
 #include <memory>
+#include <bitset>
 
 #include "thread.h"
 #include "PLC_IO_bridge.hpp"
-
+#include "gpio.hpp"
 
 
 
@@ -82,6 +83,12 @@ private:
 		PLC_IO_bridge io_bridge;	
 		int i = 0;
 
+#if USE_PHYSICAL_GPIO == 1
+		std::vector<GpioIn> in_phys = { 2, 3, 4, 17, 27, 22, 10, 9 };
+		std::vector<GpioOut> out_phys = { 11, 5, 6, 13, 19, 26, 20, 21 };
+#endif
+
+
 
 		while(IsRun()){
 
@@ -126,8 +133,25 @@ private:
 				io_bridge.start_loop(delay);
 				PLC_IO_bridge::wait_result err = io_bridge.wait_until_loop_finished_or(delay);
 
+				PLC_io_module* io_module = io_bridge.getIOModulesAdress();
+				PLC_io_tag* io_tags = io_bridge.getIOTagsAdress();
+
+
+				std::bitset<32> out = io_module->output;
+				std::bitset<32> in = io_module->input;
+
+
+#if USE_PHYSICAL_GPIO == 1
+				for (int i = 0; i < 32; i++) {
+					in[i] = in_phys[i].read_bool();
+					out_phys[i].write(out[i]);
+				}
+#endif
+
+
+
 				if (err == PLC_IO_bridge::wait_result::OK) {
-					std::cout << "OK  - " << i++ << "\n";
+					std::cout << "OK  - " << i++ << " IN:"<< in << " OUT:" << out << "\n";
 				}
 				else {
 					std::cout << "ERR - " << i++ << "\n";

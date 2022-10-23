@@ -110,10 +110,17 @@ public:
 
     #endif
 
-private:
-
-
 public:
+
+    PLC_io_module* getIOModulesAdress(){
+        return shared_data->io_module;
+    }
+
+    PLC_io_tag* getIOTagsAdress(){
+        return shared_data->io_tag;
+    }
+
+
 
     enum class wait_result{
         OK,

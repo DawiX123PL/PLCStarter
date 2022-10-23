@@ -23,7 +23,8 @@ add_executable (PLCStarter
             "src/StarterConfig.h"
             "src/PLCServer.cpp"
             "src/App_builder.cpp"
-            "src/App_builder.hpp")
+            "src/App_builder.hpp"
+            "src/gpio.hpp")
 
 add_executable (TestApp 
             "src/TestApp.cpp"
@@ -40,6 +41,10 @@ target_link_directories(TestApp PRIVATE "${CMAKE_SOURCE_DIR}/boost_1_79_0/stage/
 # defines
 target_compile_definitions(PLCStarter PRIVATE PLC_IO_BRIDGE_CREATE=1)
 target_compile_definitions(TestApp    PRIVATE PLC_IO_BRIDGE_CONNECT=1)
+
+if (UNIX)
+	target_compile_definitions(PLCStarter PRIVATE USE_PHYSICAL_GPIO=1)
+endif
 
 
 # change default out dir
