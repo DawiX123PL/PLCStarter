@@ -1,6 +1,6 @@
 #include "PLCServer.h"
 
-
+#include <boost/locale/encoding_utf.hpp>
 
 
 void PLC_server_connection_handle::commandFileList(const std::string& cmd){
@@ -11,16 +11,22 @@ void PLC_server_connection_handle::commandFileList(const std::string& cmd){
 
     for(auto dir_entry : dir_iter){
 
-        std::error_code err;
-
-        // IMPORTANT 
+        // IMPORTANT
         // time_since_epoch() does not guarantee to return time duration since unix epoch util c++20.
         //
         // TODO: change it later or change c++ version to c++20
         //
-        namespace ch = std::chrono;
-        auto modification_time_point = ch::clock_cast<ch::system_clock>(dir_entry.last_write_time());
-        auto modification_time = ch::duration_cast<ch::seconds>(modification_time_point.time_since_epoch()).count();
+        //                    !!!!! MORE IMPORTANT !!!!!
+        //               CODE BELOW DOES NOT COMPILE ON LINUX
+        //           + THIS IS GARBAGE CODE - DONT USE IT. PERIOD.
+        //
+        // // namespace ch = std::chrono;
+        // // auto modification_time_point = ch::clock_cast<ch::system_clock>(dir_entry.last_write_time());
+        // // auto modification_time = ch::duration_cast<ch::seconds>(modification_time_point.time_since_epoch()).count();
+
+        boost::system::error_code err1;
+        boost::filesystem::path p = dir_entry.path().wstring();
+        std::time_t modification_time = boost::filesystem::last_write_time(p, err1);
 
 
         std::string type;
@@ -31,17 +37,28 @@ void PLC_server_connection_handle::commandFileList(const std::string& cmd){
         else 
             type = "Other";
 
-        std::wstring_convert<std::codecvt<char32_t,char,std::mbstate_t>,char32_t> convert32;
-        
-        auto relative_path = std::filesystem::relative(dir_entry.path(), config.user_app_root);
-        auto path = convert32.to_bytes(relative_path.u32string());
 
-        boost::json::object dir_entry_js = 
-            {
-                {"Name", path }, 
-                {"Date", modification_time},
-                {"Type", type }
-            };
+        auto relative_path = std::filesystem::relative(dir_entry.path(), config.user_app_root);
+        
+        // THIS CODE WONT COMPILE ON LINUX 
+        // // std::wstring_convert<std::codecvt<char32_t,char,std::mbstate_t>,char32_t> convert32;
+        // // auto path = convert32.to_bytes(relative_path.u32string());
+
+        std::string path = boost::locale::conv::utf_to_utf<char,char32_t>(relative_path.u32string());
+
+        // THIS WONT COMPILE ON LINUX ALSO
+        // // boost::json::object dir_entry_js = 
+        // //     {
+        // //         {"Name", path }, 
+        // //         {"Date", modification_time},
+        // //         {"Type", type }
+        // //     };
+
+        boost::json::object dir_entry_js;
+        dir_entry_js["Name"] = path;
+        dir_entry_js["Date"] = modification_time;
+        dir_entry_js["Type"] = type;
+
         
         result_array.push_back(dir_entry_js);
     }

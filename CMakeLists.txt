@@ -43,7 +43,31 @@ target_compile_definitions(PLCStarter PRIVATE PLC_IO_BRIDGE_CREATE=1)
 target_compile_definitions(TestApp    PRIVATE PLC_IO_BRIDGE_CONNECT=1)
 
 if (UNIX)
+	# allow Raspberry pi to use gpio
 	target_compile_definitions(PLCStarter PRIVATE USE_PHYSICAL_GPIO=1)
+
+	# link libraries:
+	#	-pthread, libboost_json.a, libboost_filesystem.a, rt 
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+	target_link_libraries(PLCStarter "${CMAKE_SOURCE_DIR}/boost_1_79_0/stage/lib/libboost_json.a")
+	target_link_libraries(PLCStarter "${CMAKE_SOURCE_DIR}/boost_1_79_0/stage/lib/libboost_filesystem.a" rt)
+
+	# reduce memory usage during compilation on Raspberry pi
+	# !!! IMPORTANT !!!
+	# this will make compilation time significanty longer
+	target_compile_options(PLCStarter PRIVATE "SHELL:--param ggc-min-expand=1" "SHELL:--param ggc-min-heapsize=700")
+
+
+	# link libraries:
+	#	-pthread, libboost_json.a, libboost_filesystem.a, rt 
+	target_link_libraries(TestApp "${CMAKE_SOURCE_DIR}/boost_1_79_0/stage/lib/libboost_json.a")
+	target_link_libraries(TestApp "${CMAKE_SOURCE_DIR}/boost_1_79_0/stage/lib/libboost_filesystem.a" rt)
+	
+	# reduce memory usage during compilation on Raspberry pi
+	# !!! IMPORTANT !!!
+	# this will make compilation time significanty longer
+	target_compile_options(TestApp    PRIVATE "SHELL:--param ggc-min-expand=1" "SHELL:--param ggc-min-heapsize=700")
+
 endif(UNIX)
 
 
