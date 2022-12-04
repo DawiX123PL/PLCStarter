@@ -24,6 +24,8 @@
 /lib
 /*.dir
 /x64
+/Debug
+/Release
 
 /userAppRoot/root/build
 /userAppRoot/root/obj
@@ -42,6 +44,7 @@
 /CMakeFiles
 /.CMakeLists.txt.swp
 /CMakeLists.txt.save
+/CMakePresets.json
 
 # makefiles
 /makefile

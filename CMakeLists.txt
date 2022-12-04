@@ -27,9 +27,20 @@ add_executable (PLCStarter
             "src/gpio.hpp")
 
 add_executable (TestApp 
-            "src/TestApp.cpp"
+            "src/user_app/TestApp.cpp"
+            "src/user_app/PLC_app.cpp"
+            "src/user_app/PLC_app.hpp"
             "src/PLC_IO_data.hpp"
-            "src/PLC_IO_bridge.hpp")
+            "src/PLC_IO_bridge.hpp"
+            )
+
+add_library(PLCAppLib
+            "src/user_app/PLC_app.cpp"
+            "src/user_app/PLC_app.hpp"
+            "src/PLC_IO_data.hpp"
+            "src/PLC_IO_bridge.hpp"
+            )
+
 
 # include/link boost library
 target_include_directories(PLCStarter PRIVATE "${CMAKE_SOURCE_DIR}/boost_1_79_0")
@@ -38,13 +49,20 @@ target_link_directories(PLCStarter PRIVATE "${CMAKE_SOURCE_DIR}/boost_1_79_0/sta
 target_include_directories(TestApp PRIVATE "${CMAKE_SOURCE_DIR}/boost_1_79_0")
 target_link_directories(TestApp PRIVATE "${CMAKE_SOURCE_DIR}/boost_1_79_0/stage/lib")
 
+target_include_directories(PLCAppLib PRIVATE "${CMAKE_SOURCE_DIR}/boost_1_79_0")
+target_link_directories(PLCAppLib PRIVATE "${CMAKE_SOURCE_DIR}/boost_1_79_0/stage/lib")
+
+
 # defines
 target_compile_definitions(PLCStarter PRIVATE PLC_IO_BRIDGE_CREATE=1)
 target_compile_definitions(TestApp    PRIVATE PLC_IO_BRIDGE_CONNECT=1)
+target_compile_definitions(PLCAppLib  PRIVATE PLC_IO_BRIDGE_CONNECT=1)
 
 if (UNIX)
 	# allow Raspberry pi to use gpio
 	target_compile_definitions(PLCStarter PRIVATE USE_PHYSICAL_GPIO=1)
+
+  ### PLCStarter
 
 	# link libraries:
 	#	-pthread, libboost_json.a, libboost_filesystem.a, rt 
@@ -58,6 +76,8 @@ if (UNIX)
 	target_compile_options(PLCStarter PRIVATE "SHELL:--param ggc-min-expand=1" "SHELL:--param ggc-min-heapsize=700")
 
 
+  ### TestApp
+
 	# link libraries:
 	#	-pthread, libboost_json.a, libboost_filesystem.a, rt 
 	target_link_libraries(TestApp "${CMAKE_SOURCE_DIR}/boost_1_79_0/stage/lib/libboost_json.a")
@@ -68,15 +88,28 @@ if (UNIX)
 	# this will make compilation time significanty longer
 	target_compile_options(TestApp    PRIVATE "SHELL:--param ggc-min-expand=1" "SHELL:--param ggc-min-heapsize=700")
 
+
+  ### PLCappLib
+
+  # link libraries:
+	#	-pthread, libboost_json.a, libboost_filesystem.a, rt 
+	target_link_libraries(PLCAppLib "${CMAKE_SOURCE_DIR}/boost_1_79_0/stage/lib/libboost_json.a")
+	target_link_libraries(PLCAppLib "${CMAKE_SOURCE_DIR}/boost_1_79_0/stage/lib/libboost_filesystem.a" rt)
+	
+	# reduce memory usage during compilation on Raspberry pi
+	# !!! IMPORTANT !!!
+	# this will make compilation time significanty longer
+	target_compile_options(PLCAppLib    PRIVATE "SHELL:--param ggc-min-expand=1" "SHELL:--param ggc-min-heapsize=700")
+
 endif(UNIX)
 
 
 # change default out dir
-set_target_properties( PLCStarter TestApp
+set_target_properties( PLCStarter TestApp PLCAppLib
     PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build"
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build/"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build/"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build/"
 )
 
 

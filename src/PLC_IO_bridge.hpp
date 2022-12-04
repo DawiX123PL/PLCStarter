@@ -2,6 +2,7 @@
 
 #include <mutex>
 #include <chrono>
+#include <thread>
 
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/sync/named_mutex.hpp>
@@ -116,8 +117,17 @@ public:
         return shared_data->io_module;
     }
 
+    size_t getIOModulesSize(){
+        return sizeof(shared_data->io_module)/sizeof(shared_data->io_module[0]);
+    }
+
+
     PLC_io_tag* getIOTagsAdress(){
         return shared_data->io_tag;
+    }
+
+    size_t getIOTagsSize(){
+        return sizeof(shared_data->io_tag)/sizeof(shared_data->io_tag[0]);
     }
 
 
