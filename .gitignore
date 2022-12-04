@@ -9,7 +9,7 @@
 
 # this files can be build by running bootstrap.bat and b2.exe
 /boost_1_79_0/b2.exe
-/boost_1_79_0/project-config.jam
+/boost_1_79_0/project-config.jam*
 /boost_1_79_0/stage
 /boost_1_79_0/bin.v2
 /boost_1_79_0/b2
