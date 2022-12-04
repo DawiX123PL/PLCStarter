@@ -130,7 +130,7 @@ public:
             flags.push_back(path.lexically_normal().string());
             flags.push_back("-c");
             flags.push_back("-o");
-            flags.push_back(obj_path.lexically_normal().string() + ".o ");
+            flags.push_back(obj_path.lexically_normal().string() + ".o");
 
             if(path.extension() == "cpp")     flags.insert(flags.end(), config.cpp_flags.begin(), config.cpp_flags.end() );
             else if(path.extension() == "c")  flags.insert(flags.end(), config.c_flags.begin(), config.c_flags.end() );
