@@ -181,7 +181,7 @@ private:
 
 	void commandAppStop(const boost::json::object& data_frame, const std::string& cmd){
 		if(config.app_controler == nullptr){
-			sendJson(jsonResponseERR(cmd, "Cannot Start App"));
+			sendJson(jsonResponseERR(cmd, "Cannot Stop App"));
 			return;
 		}
 		config.app_controler->AppStop();
@@ -190,7 +190,7 @@ private:
 
 	void commandAppStatus(const boost::json::object& data_frame, const std::string& cmd){
 		if(config.app_controler == nullptr){
-			sendJson(jsonResponseERR(cmd, "Cannot Start App"));
+			sendJson(jsonResponseERR(cmd, "Cannot Check App Status"));
 			return;
 		}
 		bool is_running = config.app_controler->AppIsRunning();
