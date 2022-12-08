@@ -135,24 +135,41 @@ public:
             if(path.extension() == "cpp")     flags.insert(flags.end(), config.cpp_flags.begin(), config.cpp_flags.end() );
             else if(path.extension() == "c")  flags.insert(flags.end(), config.c_flags.begin(), config.c_flags.end() );
 
-            bp::pstream out;
-            bp::child compiler_process(compiler, bp::args(flags), bp::std_out > bp::null, bp::std_err > out);
+            bp::pstream error_stream;
+            bp::pstream out_stream;
+            bp::child compiler_process(compiler, bp::args(flags), bp::std_out > out_stream, bp::std_err > error_stream);
 
             compiler_process.join();
             int exit_code = compiler_process.exit_code();
+            
+            std::string error_str;
+            std::string out_str;
 
-            std::stringstream sstream;
-            sstream << out.rdbuf();
-            std::string error_info = sstream.str();
+            {
+                std::stringstream sstream;
+                sstream << error_stream.rdbuf();
+                error_str = sstream.str();
+            }
 
-            std::cout << error_info << "\n\n";
+            {
+                std::stringstream sstream;
+                sstream << out_stream.rdbuf();
+                out_str = sstream.str();
+            }
 
-            result_list.push_back(BuildResult(exit_code, file, error_info));
+            result_list.push_back(BuildResult(exit_code, file, error_str));
         }
+
+        // check if compilation of any cpp file failed
+        // and not link then
+        bool is_any_failed = false;
+        for(BuildResult result: result_list)
+            if(result.error_code != 0)
+                is_any_failed = true;
 
 
         // link to out.exe
-        {
+        if(!is_any_failed){
             boost::filesystem::path linker =  bp::search_path("g++");
 
             std::filesystem::path exec_path = project_root / "build/app.exe";
@@ -169,19 +186,29 @@ public:
 
             std::filesystem::create_directories(exec_path.parent_path());
 
-            bp::pstream out;
-            bp::child compiler_process(linker, bp::args(ld_flags), bp::std_out > bp::null, bp::std_err > out);
+            bp::pstream out_stream;
+            bp::pstream error_stream;
+            bp::child compiler_process(linker, bp::args(ld_flags), bp::std_out > out_stream, bp::std_err > error_stream, bp::std_in < bp::null);
 
             compiler_process.join();
             int exit_code = compiler_process.exit_code();
 
-            std::stringstream sstream;
-            sstream << out.rdbuf();
-            std::string error_info = sstream.str();
+            std::string output_str;
+            std::string error_str;
 
-            std::cout << error_info << "\n\n";
+            {
+                std::stringstream sstream;
+                sstream << out_stream.rdbuf();
+                std::string output_str = sstream.str();
+            }
 
-            result_list.push_back(BuildResult(exit_code, "", error_info));
+            {
+                std::stringstream sstream;
+                sstream << error_stream.rdbuf();
+                std::string error_str = sstream.str();
+            }
+
+            result_list.push_back(BuildResult(exit_code, "build.conf", error_str));
         }
         return result_list;
     }
