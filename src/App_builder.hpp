@@ -105,12 +105,6 @@ public:
         std::vector<BuildResult> result_list;
 
 
-        // merge C++/C/LD flags into one string;
-        std::string cpp_flags = flagsToString(config.cpp_flags);
-        std::string c_flags = flagsToString(config.c_flags);
-        std::string ld_flags = flagsToString(config.ld_flags);
-
-
         // iterate over files and compile to .o
 
         namespace bp = boost::process;
@@ -132,12 +126,20 @@ public:
             flags.push_back("-o");
             flags.push_back(obj_path.lexically_normal().string() + ".o");
 
+
             if(path.extension() == "cpp")     flags.insert(flags.end(), config.cpp_flags.begin(), config.cpp_flags.end() );
             else if(path.extension() == "c")  flags.insert(flags.end(), config.c_flags.begin(), config.c_flags.end() );
 
+            // filter out empty flags
+            std::vector<std::string> flags_final;
+            for(std::string& f: flags)
+                if(!f.empty())
+                    flags_final.emplace_back(f);
+
+
             bp::pstream error_stream;
             bp::pstream out_stream;
-            bp::child compiler_process(compiler, bp::args(flags), bp::std_out > out_stream, bp::std_err > error_stream);
+            bp::child compiler_process(compiler, bp::args(flags_final), bp::std_out > out_stream, bp::std_err > error_stream, bp::std_in < bp::null);
 
             compiler_process.join();
             int exit_code = compiler_process.exit_code();
@@ -157,7 +159,7 @@ public:
                 out_str = sstream.str();
             }
 
-            result_list.push_back(BuildResult(exit_code, file, error_str));
+            result_list.push_back(BuildResult(exit_code, file, out_str + error_str));
         }
 
         // check if compilation of any cpp file failed
@@ -170,9 +172,8 @@ public:
 
         // link to out.exe
         if(!is_any_failed){
-            boost::filesystem::path linker =  bp::search_path("g++");
 
-            std::filesystem::path exec_path = project_root / "build/app.exe";
+            boost::filesystem::path linker =  bp::search_path("g++");
 
             std::vector<std::string> ld_flags;
             for (std::string file : config.files) {
@@ -180,35 +181,44 @@ public:
                 ld_flags.push_back(file_path.lexically_normal().string());
             }
 
+            std::filesystem::path exec_path = project_root / "build/app.exe";
+
             ld_flags.insert(ld_flags.end(), config.ld_flags.begin(), config.ld_flags.end());
             ld_flags.push_back("-o");
             ld_flags.push_back(exec_path.lexically_normal().string());
 
+            // filter out empty flags
+            std::vector<std::string> ld_flags_final;
+            for(std::string& f: ld_flags)
+                if(!f.empty())
+                    ld_flags_final.emplace_back(f);
+
             std::filesystem::create_directories(exec_path.parent_path());
 
-            bp::pstream out_stream;
             bp::pstream error_stream;
-            bp::child compiler_process(linker, bp::args(ld_flags), bp::std_out > out_stream, bp::std_err > error_stream, bp::std_in < bp::null);
+            bp::pstream out_stream;
+            bp::child compiler_process(linker, bp::args(ld_flags_final), bp::std_out > out_stream, bp::std_err > error_stream, bp::std_in < bp::null);
 
             compiler_process.join();
             int exit_code = compiler_process.exit_code();
 
-            std::string output_str;
             std::string error_str;
-
-            {
-                std::stringstream sstream;
-                sstream << out_stream.rdbuf();
-                std::string output_str = sstream.str();
-            }
+            std::string out_str;
 
             {
                 std::stringstream sstream;
                 sstream << error_stream.rdbuf();
-                std::string error_str = sstream.str();
+                error_str = sstream.str();
             }
 
-            result_list.push_back(BuildResult(exit_code, "build.conf", error_str));
+            {
+                std::stringstream sstream;
+                sstream << out_stream.rdbuf();
+                out_str = sstream.str();
+            }
+
+            result_list.push_back(BuildResult(exit_code, "build.conf", out_str + error_str));
+
         }
         return result_list;
     }
