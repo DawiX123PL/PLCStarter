@@ -5,6 +5,11 @@
 
 
 
+std::filesystem::path AppBuilder::include_dir;
+std::filesystem::path AppBuilder::library_path;
+
+
+
 void tag_invoke( const boost::json::value_from_tag&, boost::json::value& js, AppBuilder::BuildResult build_result){
     js = {
             {"File", build_result.file},

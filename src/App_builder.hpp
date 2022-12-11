@@ -62,6 +62,10 @@ class AppBuilder{
 
 public:
 
+    static std::filesystem::path library_path;
+    static std::filesystem::path include_dir;
+
+
 
     bool loadBuildConf(std::filesystem::path path){
 
@@ -125,6 +129,8 @@ public:
             flags.push_back("-c");
             flags.push_back("-o");
             flags.push_back(obj_path.lexically_normal().string() + ".o");
+            flags.push_back("-I" + include_dir.lexically_normal().string()); // add include directory with file PLC_app.hpp inside
+
 
 
             if(path.extension() == "cpp")     flags.insert(flags.end(), config.cpp_flags.begin(), config.cpp_flags.end() );
@@ -186,6 +192,12 @@ public:
             ld_flags.insert(ld_flags.end(), config.ld_flags.begin(), config.ld_flags.end());
             ld_flags.push_back("-o");
             ld_flags.push_back(exec_path.lexically_normal().string());
+            ld_flags.push_back("-L" + library_path.lexically_normal().string());
+            ld_flags.push_back("-lPLCAppLib");
+
+#ifdef __unix__ 
+            ld_flags.push_back("-lrt"); // link linux runtime library
+#endif
 
             // filter out empty flags
             std::vector<std::string> ld_flags_final;

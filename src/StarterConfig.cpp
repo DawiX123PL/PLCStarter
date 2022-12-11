@@ -32,6 +32,8 @@ Starter_config tag_invoke(boost::json::value_to_tag< Starter_config >, boost::js
 	tryAssing(json, "/App/autoStart", config.app.autoStart);
 	tryAssing(json, "/App/projRoot", config.app.projRoot);
 	tryAssing(json, "/App/exec", config.app.executable);
+	tryAssing(json, "/Compilation/libraryPath", config.compilation.library_path);
+	tryAssing(json, "/Compilation/includeDirectoryPath", config.compilation.include_directory);
 
 	return config;
 }
@@ -39,7 +41,7 @@ Starter_config tag_invoke(boost::json::value_to_tag< Starter_config >, boost::js
 
 
 
-Starter_config read_config(std::string path) {
+Starter_config read_config(std::filesystem::path path) {
 	using namespace std;
 
 	fstream configFile(path, ios_base::in | ios_base::binary);

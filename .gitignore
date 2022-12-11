@@ -49,3 +49,7 @@
 # makefiles
 /makefile
 /Makefile
+
+
+# Obsidian
+.obsidian

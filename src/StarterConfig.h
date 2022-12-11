@@ -4,6 +4,7 @@
 #include <boost/json.hpp>
 #include <fstream>
 #include <iostream>
+#include <filesystem>
 
 
 //	REMEMBER !!!!
@@ -28,10 +29,15 @@ struct Starter_config {
 		std::string executable = "app.exe"; // name of executable to executable
 	}app;
 
+	struct Compilation{
+		std::string library_path = "---";
+		std::string include_directory = "---";
+	}compilation;
+
 };
 
 
 // name is self explanatory
-Starter_config read_config(std::string path);
+Starter_config read_config(std::filesystem::path path);
 
 
