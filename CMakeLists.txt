@@ -12,6 +12,7 @@ project ("PLCStarter")
 
 add_executable (PLCStarter 
             "src/PLC_IO_data.hpp"
+            "src/PLC_IO_bridge.cpp"
             "src/PLC_IO_bridge.hpp"
             "src/App_controler.hpp"
             "src/Starter.cpp"         
@@ -31,6 +32,7 @@ add_executable (TestApp
             "src/user_app/PLC_app.cpp"
             "src/user_app/PLC_app.hpp"
             "src/PLC_IO_data.hpp"
+            "src/PLC_IO_bridge.cpp"
             "src/PLC_IO_bridge.hpp"
             )
 
@@ -38,6 +40,7 @@ add_library(PLCAppLib
             "src/user_app/PLC_app.cpp"
             "src/user_app/PLC_app.hpp"
             "src/PLC_IO_data.hpp"
+            "src/PLC_IO_bridge.cpp"
             "src/PLC_IO_bridge.hpp"
             )
 

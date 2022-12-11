@@ -35,7 +35,7 @@ class PLC_IO_bridge
     boost::interprocess::shared_memory_object* shared_mem;
     boost::interprocess::mapped_region* mapped_region;
 
-    constexpr static char shared_mem_name[] = "PLC_IO_bridge_shared_memory";
+    const static char shared_mem_name[];
 
     struct SharedData{
         boost::interprocess::interprocess_mutex mutex;

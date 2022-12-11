@@ -41,13 +41,13 @@ private:
 
 public:
     enum class Dir{
-        INPUT,
-        OUTPUT,
+        _INPUT,
+        _OUTPUT,
     };
 
     enum class Level{
-        LOW,
-        HIGH,
+        _LOW,
+        _HIGH,
     };
 
     inline Gpio(Dir dir, size_t nr): pin_nr(nr){
@@ -56,10 +56,10 @@ public:
         value_file_path = "/sys/class/gpio/gpio" + std::to_string(pin_nr) + "/value";
 
 
-        if(dir == Dir::INPUT){
+        if(dir == Dir::_INPUT){
             const char str[] = "in";
             write_to_file(dir_file_path.c_str(),str, sizeof(str)-1 );
-        }else if(dir == Dir::OUTPUT){
+        }else if(dir == Dir::_OUTPUT){
             const char str[] = "out";
             write_to_file(dir_file_path.c_str(),str, sizeof(str)-1 );
         }
@@ -72,10 +72,10 @@ public:
 
 
     inline void write(Level level){
-        if(level == Level::HIGH){
+        if(level == Level::_HIGH){
             const char str[] = "1";
             write_to_file(value_file_path.c_str(),str, sizeof(str) );
-        }else if(level == Level::LOW){
+        }else if(level == Level::_LOW){
             const char str[] = "0";
             write_to_file(value_file_path.c_str(),str, sizeof(str) );
         }
@@ -86,9 +86,9 @@ public:
         int count = sizeof(file_content)-1;
         bool isOk = read_from_file(value_file_path.c_str(), file_content, &count);
         if(isOk){ 
-            return file_content[0] == '0' ? Level::LOW : Level::HIGH;
+            return file_content[0] == '0' ? Level::_LOW : Level::_HIGH;
         }else{
-            return Level::LOW;
+            return Level::_LOW;
         }
     }
 
@@ -100,14 +100,14 @@ class GpioIn{
     Gpio gpio;
 
 public:
-    GpioIn(size_t nr):gpio(Gpio::Dir::INPUT, nr){};
+    GpioIn(size_t nr):gpio(Gpio::Dir::_INPUT, nr){};
 
     Gpio::Level read(){
         return gpio.read();
     }
 
     bool read_bool(){
-        return gpio.read() == Gpio::Level::HIGH;
+        return gpio.read() == Gpio::Level::_HIGH;
     }
 
 };
@@ -117,14 +117,14 @@ class GpioOut{
     Gpio gpio;
 
 public:
-    GpioOut(size_t nr):gpio(Gpio::Dir::OUTPUT, nr){};
+    GpioOut(size_t nr):gpio(Gpio::Dir::_OUTPUT, nr){};
 
     void write(Gpio::Level level){
         gpio.write(level);
     }
 
     void write(bool level){
-        gpio.write(level ? Gpio::Level::HIGH : Gpio::Level::LOW);
+        gpio.write(level ? Gpio::Level::_HIGH : Gpio::Level::_LOW);
     }
 
 };

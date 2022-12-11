@@ -84,8 +84,15 @@ private:
 		int i = 0;
 
 #if USE_PHYSICAL_GPIO == 1
-		std::vector<GpioIn> in_phys = { 2, 3, 4, 17, 27, 22, 10, 9 };
-		std::vector<GpioOut> out_phys = { 11, 5, 6, 13, 19, 26, 20, 21 };
+		GpioIn in_phys[] = { 2, 3, 4, 17, 27, 22, 10, 9 };
+		GpioOut out_phys[] = { 11, 5, 6, 13, 19, 26, 20, 21 };
+
+		const int in_phys_size = sizeof(in_phys)/sizeof(in_phys[0]);
+		const int out_phys_size = sizeof(out_phys)/sizeof(out_phys[0]);
+
+		for (int i = 0; i < out_phys_size; i++) {
+			out_phys[i].write(false);
+		}
 #endif
 
 
@@ -104,18 +111,31 @@ private:
 
 				if( start_app ){
 					
+					std::error_code err;
+
 					app = std::make_unique<boost::process::child>(
 						"./userAppRoot/root/build/app.exe", 
 						boost::process::std_out > boost::process::null, 
 						boost::process::std_err > boost::process::null, 
-						boost::process::std_in < boost::process::null
+						boost::process::std_in < boost::process::null,
+						err
 						);
+
+					if(err){
+						app_status = AppStatus::STOP;
+						continue;
+					}
 				}
 
 				if( stop_app ){
 					std::error_code err;
 					if(app) app->terminate(err);
-					
+
+#if USE_PHYSICAL_GPIO == 1
+					for (int i = 0; i < out_phys_size; i++) {
+						out_phys[i].write(false);
+					}
+#endif
 				}
 
 			}
@@ -138,12 +158,16 @@ private:
 
 
 				std::bitset<32> out = io_module->output;
-				std::bitset<32> in = io_module->input;
+				std::bitset<32> in = 0;
+				// std::bitset<32> in = io_module->input;
 
 
 #if USE_PHYSICAL_GPIO == 1
-				for (int i = 0; i < 32; i++) {
+				for (int i = 0; i < in_phys_size; i++) {
 					in[i] = in_phys[i].read_bool();
+				}
+
+				for (int i = 0; i < out_phys_size; i++) {
 					out_phys[i].write(out[i]);
 				}
 #endif
