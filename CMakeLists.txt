@@ -14,6 +14,7 @@ add_executable (PLCStarter
             "src/PLC_IO_data.hpp"
             "src/PLC_IO_bridge.cpp"
             "src/PLC_IO_bridge.hpp"
+			"src/App_controler.cpp"
             "src/App_controler.hpp"
             "src/Starter.cpp"         
             "src/Starter.cpp"

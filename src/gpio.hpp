@@ -19,6 +19,9 @@ private:
         if(file.bad()) return false;
 
         file.write(data.c_str(), data.size());
+        file.close();
+        
+        if(file.bad()) return false;
         return true;
     }
 
@@ -27,6 +30,9 @@ private:
         if(file.bad()) return false;
 
         file.write(data, count);
+        file.close();
+        
+        if(file.bad()) return false;
         return true;
     }
 
@@ -35,7 +41,9 @@ private:
 
         if(file.bad()) return false;
         *count = file.read(data, *count).gcount();
+        file.close();
 
+        if(file.bad()) return false;
         return true;
     }
 
@@ -49,6 +57,23 @@ public:
         _LOW,
         _HIGH,
     };
+
+
+    void Export(){
+ 	    write_to_file("/sys/class/gpio/export", std::to_string(pin_nr));
+    }
+
+
+    void SetDir(Dir dir){
+         if(dir == Dir::_INPUT){
+            const char str[] = "in";
+            write_to_file(dir_file_path.c_str(),str, sizeof(str)-1 );
+        }else if(dir == Dir::_OUTPUT){
+            const char str[] = "out";
+            write_to_file(dir_file_path.c_str(),str, sizeof(str)-1 );
+        }
+    }
+
 
     inline Gpio(Dir dir, size_t nr): pin_nr(nr){
         write_to_file("/sys/class/gpio/export", std::to_string(pin_nr));
@@ -67,6 +92,8 @@ public:
 
 
     inline ~Gpio(){
+        const char str[] = "in";
+        write_to_file(dir_file_path.c_str(),str, sizeof(str)-1 );
         write_to_file("/sys/class/gpio/unexport", std::to_string(pin_nr));
     }
 
@@ -102,6 +129,14 @@ class GpioIn{
 public:
     GpioIn(size_t nr):gpio(Gpio::Dir::_INPUT, nr){};
 
+    void Export(){
+        gpio.Export();
+    }
+
+    void SetDir(){
+        gpio.SetDir(Gpio::Dir::_INPUT);
+    }
+
     Gpio::Level read(){
         return gpio.read();
     }
@@ -118,6 +153,14 @@ class GpioOut{
 
 public:
     GpioOut(size_t nr):gpio(Gpio::Dir::_OUTPUT, nr){};
+
+   void Export(){
+        gpio.Export();
+    }
+
+    void SetDir(){
+        gpio.SetDir(Gpio::Dir::_OUTPUT);
+    }
 
     void write(Gpio::Level level){
         gpio.write(level);
