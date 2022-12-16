@@ -38,8 +38,8 @@ int main(int argc, char* argv[]) {
 		AppBuilder::library_path = exe_dir / library_path;
 	}
 
-
 	App_controler app;
+
 	PLC_TCP_server server(config.server.port);
 
 	PLC_TCP_server_config server_config{};
@@ -47,8 +47,10 @@ int main(int argc, char* argv[]) {
 	std::filesystem::path app_root_path = config.app.projRoot;
 	if (app_root_path.is_absolute()){
 		server_config.user_app_root = app_root_path;
+		app.SetAppPath(app_root_path / "build" / "app.exe");
 	}else{
 		server_config.user_app_root = exe_dir / app_root_path;
+		app.SetAppPath(exe_dir / app_root_path / "build" / "app.exe");
 	}
 
 	server_config.app_controler = &app;

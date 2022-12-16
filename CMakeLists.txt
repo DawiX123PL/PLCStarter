@@ -137,6 +137,8 @@ if ( MSVC )
 endif ( MSVC )
 
 
+
+
 # post build commands
 # trick from https://stackoverflow.com/questions/9994045/copy-target-file-to-another-location-in-a-post-build-step-in-cmake
 add_custom_command(TARGET PLCStarter POST_BUILD
@@ -145,7 +147,9 @@ add_custom_command(TARGET PLCStarter POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/build/app_root"
 )
 
-
+add_custom_command(TARGET TestApp POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:TestApp>" "${CMAKE_BINARY_DIR}/build/app_root/build/app.exe"
+)
 
 
 # set language standard to c++11

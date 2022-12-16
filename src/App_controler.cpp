@@ -63,7 +63,7 @@ void App_controler::threadJob() {
                 std::error_code err;
 
                 app = std::make_unique<boost::process::child>(
-                    "./userAppRoot/root/build/app.exe", 
+                    app_path.lexically_normal().wstring(),
                     boost::process::std_out > boost::process::null, 
                     boost::process::std_err > boost::process::null, 
                     boost::process::std_in < boost::process::null,

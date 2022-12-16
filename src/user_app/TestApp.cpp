@@ -22,7 +22,16 @@ int main() {
 
 	while(true){
 		PLC::LoopStart();
+		PLC::IOmoduleData data = PLC::GetIO();
+
+		data.output = ~data.output;
+		
+		PLC::SetIO(data);
+
+		
 		std::cout << "LOOP nr. " << i++ << "\n";
+		
+		
 		PLC::LoopEnd();
 	}
 

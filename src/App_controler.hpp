@@ -40,10 +40,19 @@ class App_controler : public Thread {
 
 	std::mutex app_status_mutex;
 	AppStatus app_status;
+	std::filesystem::path app_path;
 
 public:
+
+
 	App_controler(): app_status(AppStatus::STOPPED){}
 
+
+	void SetAppPath(std::filesystem::path path) {
+		app_status_mutex.lock();
+		app_path = path;
+		app_status_mutex.unlock();
+	}
 
 
 	void AppStart(){
