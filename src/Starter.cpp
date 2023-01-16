@@ -1,6 +1,7 @@
 #include <iostream>
 #include <chrono>
 #include <filesystem>
+#include <thread>
 
 #include "Server.h"
 #include "PLCServer.h"
@@ -62,7 +63,12 @@ int main(int argc, char* argv[]) {
 
 	std::cout << "Starting server at port: " << config.server.port << "\n";
 
-	getchar(); // this is just to stop program for debugging
+	while(true){
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+	}
+
+	// getchar migth cause crashing while starting process with systemctl
+	//getchar(); // this is just to stop program for debugging
 
 	app.Stop();
 	server.Stop();
