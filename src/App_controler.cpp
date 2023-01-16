@@ -12,8 +12,8 @@ void App_controler::threadJob() {
 
 #if USE_PHYSICAL_GPIO == 1
 
-    GpioIn in_phys[] = { 2, 3, 4, 17, 27, 22, 10, 9 };
-    GpioOut out_phys[] = { 11, 5, 6, 13, 19, 26, 20, 21 };
+    GpioIn in_phys[] = { 7, 8, 25, 24, 23, 18, 2, 3, 4, 17 };
+    GpioOut out_phys[] = { 26, 19, 21, 20, 16, 12, 10, 9, 11, 5 };
 
     std::cout << "Setting up GPIO pins\n";
 
@@ -64,7 +64,7 @@ void App_controler::threadJob() {
 
                 app = std::make_unique<boost::process::child>(
                     app_path.lexically_normal().wstring(),
-                    boost::process::std_out > boost::process::null, 
+                    boost::process::std_out > stdout, 
                     boost::process::std_err > boost::process::null, 
                     boost::process::std_in < boost::process::null,
                     err
@@ -74,11 +74,24 @@ void App_controler::threadJob() {
                     app_status = AppStatus::STOP;
                     continue;
                 }
+
+                // reset registers before app is started
+                PLC_io_module* io_module = io_bridge.getIOModulesAdress();
+                PLC_io_tag* io_tags = io_bridge.getIOTagsAdress();
+                io_module->input = 0;
+                io_module->output = 0;
+
             }
 
             if( stop_app ){
                 std::error_code err;
                 if(app) app->terminate(err);
+
+                // reset registers after app is terminated
+                PLC_io_module* io_module = io_bridge.getIOModulesAdress();
+                PLC_io_tag* io_tags = io_bridge.getIOTagsAdress();
+                io_module->input = 0;
+                io_module->output = 0;
 
 #if USE_PHYSICAL_GPIO == 1
                 for (int i = 0; i < out_phys_size; i++) {
@@ -98,9 +111,6 @@ void App_controler::threadJob() {
         }
 
         if(app && app->running()){
-            auto delay = std::chrono::high_resolution_clock::now() + std::chrono::seconds(1);
-            io_bridge.start_loop(delay);
-            PLC_IO_bridge::wait_result err = io_bridge.wait_until_loop_finished_or(delay);
 
             PLC_io_module* io_module = io_bridge.getIOModulesAdress();
             PLC_io_tag* io_tags = io_bridge.getIOTagsAdress();
@@ -113,7 +123,7 @@ void App_controler::threadJob() {
 
 #if USE_PHYSICAL_GPIO == 1
             for (int i = 0; i < in_phys_size; i++) {
-                in[i] = in_phys[i].read_bool();
+                in[i] = !(in_phys[i].read_bool());
             }
 
             for (int i = 0; i < out_phys_size; i++) {
@@ -121,6 +131,12 @@ void App_controler::threadJob() {
             }
 #endif
 
+            io_module->input = in.to_ullong();
+
+
+            auto delay = std::chrono::high_resolution_clock::now() + std::chrono::seconds(1);
+            io_bridge.start_loop(delay);
+            PLC_IO_bridge::wait_result err = io_bridge.wait_until_loop_finished_or(delay);
 
 
             if (err == PLC_IO_bridge::wait_result::OK) {
