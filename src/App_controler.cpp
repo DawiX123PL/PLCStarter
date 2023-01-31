@@ -13,7 +13,7 @@ void App_controler::threadJob() {
 #if USE_PHYSICAL_GPIO == 1
 
     GpioIn in_phys[] = { 7, 8, 25, 24, 23, 18, 2, 3, 4, 17 };
-    GpioOut out_phys[] = { 26, 19, 21, 20, 16, 12, 10, 9, 11, 5 };
+    GpioOut out_phys[] = { 26, 19, 21, 20, 16, 12, 10, 9, 11, 13 };
 
     std::cout << "Setting up GPIO pins\n";
 
