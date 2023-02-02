@@ -1,3 +1,6 @@
+// this code is based on tutorial:
+// https://www.ics.com/blog/gpio-programming-using-sysfs-interface
+
 #pragma once
 
 #include <fstream>

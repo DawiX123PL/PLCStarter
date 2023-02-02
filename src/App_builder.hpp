@@ -25,7 +25,8 @@ class AppBuilder{
         bool fromString(const std::string& str);
     };
 
-
+// this function is based on code from:
+// https://cplusplus.com/reference/istream/istream/read/
     bool readFile(const std::filesystem::path& path, std::string* file_content){
 
         std::fstream file(path, std::ios::in | std::ios::binary);

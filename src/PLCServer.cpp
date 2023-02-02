@@ -66,7 +66,8 @@ void PLC_server_connection_handle::commandFileList(const std::string& cmd){
     sendJson(jsonResponseOK(cmd,"DirEntry", result_array));
 }
 
-
+// This function is based on code from:
+// https://cplusplus.com/reference/istream/istream/read/
 bool PLC_server_connection_handle::readFileHex(const std::string& path, std::string* hex_file) {
 
     try {
