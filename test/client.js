@@ -1,3 +1,6 @@
+// code based on:
+// https://gist.github.com/tedmiston/5935757
+
 var net = require('net');
 
 var client = new net.Socket();
